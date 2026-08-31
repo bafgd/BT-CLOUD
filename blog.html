@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Blog - btcloud.work</title>
+<meta name="description" content="Homelab notes and writeups from btcloud.work.">
+<meta name="theme-color" content="#07080a">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%2307080a'/%3E%3Crect x='10' y='38' width='24' height='24' fill='none' stroke='%23ff7a1a' stroke-width='6'/%3E%3Crect x='38' y='38' width='24' height='24' fill='none' stroke='%2334a6ff' stroke-width='6'/%3E%3Crect x='66' y='38' width='24' height='24' fill='none' stroke='%2322d996' stroke-width='6'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700;800;900&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
+<style>
+  :root{
+    --bg:#07080a;
+    --bg-panel:#101214;
+    --bg-panel-hover:#15181b;
+    --line:#24272a;
+    --line-bright:#3d4345;
+    --text:#f1f2f0;
+    --text-dim:#8b9195;
+    --text-faint:#454b4d;
+    --orange:#ff7a1a; --orange-bright:#ffb066; --orange-rgb:255,122,26;
+    --blue:#34a6ff;   --blue-bright:#8fd4ff;   --blue-rgb:52,166,255;
+    --green:#22d996;  --green-bright:#7dffce;  --green-rgb:34,217,150;
+    --white:#ffffff;  --white-bright:#ffffff;  --white-rgb:255,255,255;
+  }
+
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{height:100%;}
+
+  body{
+    background:var(--bg);color:var(--text);font-family:'IBM Plex Sans', sans-serif;
+    min-height:100vh;padding:64px 24px 100px;position:relative;overflow-x:hidden;-webkit-font-smoothing:antialiased;
+  }
+
+  body::before{
+    content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+    background:
+      repeating-linear-gradient(112deg, rgba(255,255,255,0.014) 0px, rgba(255,255,255,0.014) 1px, transparent 1px, transparent 4px),
+      repeating-linear-gradient(0deg, rgba(255,255,255,0.022) 0px, rgba(255,255,255,0.022) 1px, transparent 1px, transparent 64px),
+      repeating-linear-gradient(90deg, rgba(255,255,255,0.022) 0px, rgba(255,255,255,0.022) 1px, transparent 1px, transparent 64px);
+  }
+  .ambient{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none;}
+  .blob{position:absolute;width:520px;height:520px;border-radius:50%;filter:blur(110px);opacity:.2;}
+  .blob.w{background:var(--white);left:-8%;top:-18%;animation:driftA 14s ease-in-out infinite;opacity:.08;}
+  .blob.o{background:var(--orange);left:-10%;bottom:-24%;animation:driftA 13s ease-in-out infinite;}
+  .blob.g{background:var(--green);right:-10%;bottom:-24%;animation:driftC 14s ease-in-out infinite;}
+  @keyframes driftA{0%,100%{transform:translate(0,0) scale(1);}50%{transform:translate(30px,-20px) scale(1.08);}}
+  @keyframes driftC{0%,100%{transform:translate(0,0) scale(1);}50%{transform:translate(-28px,-18px) scale(1.07);}}
+
+  .scan-sweep{
+    position:fixed;left:0;right:0;top:-5%;height:2px;z-index:5;pointer-events:none;
+    background:linear-gradient(90deg, transparent, rgba(255,255,255,.85), transparent);
+    box-shadow:0 0 22px 4px rgba(255,255,255,.35);opacity:0;
+    animation:scanSweep 1.4s ease-out 0s 1 both;
+  }
+  @keyframes scanSweep{0%{top:-5%;opacity:0;}8%{opacity:1;}85%{opacity:.8;}100%{top:105%;opacity:0;}}
+
+  .wrap{position:relative;z-index:1;width:100%;max-width:760px;margin:0 auto;}
+
+  .reveal{opacity:0;transform:translateY(14px);animation:revealUp .7s cubic-bezier(.2,.8,.2,1) forwards;}
+  @keyframes revealUp{to{opacity:1;transform:translateY(0);}}
+
+  .topline{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px;margin-bottom:40px;}
+
+  .back{
+    font-family:'IBM Plex Mono', monospace;font-size:12px;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--text-dim);text-decoration:none;display:inline-flex;align-items:center;gap:8px;
+    padding:9px 14px;border:1px solid var(--line);border-radius:3px;transition:color .3s ease,border-color .3s ease,background .3s ease;
+  }
+  .back:hover{color:var(--text);border-color:var(--line-bright);background:var(--bg-panel);}
+  .back svg{transform:rotate(180deg);transition:transform .3s ease;}
+  .back:hover svg{transform:rotate(180deg) translateX(3px);}
+
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace;font-size:11px;letter-spacing:.28em;text-transform:uppercase;
+    color:var(--text-dim);display:flex;align-items:center;gap:10px;
+  }
+  .eyebrow .dot{color:#ffffff;text-shadow:0 0 8px rgba(255,255,255,.6);}
+
+  .wordmark{
+    font-family:'Big Shoulders Display', sans-serif;font-weight:800;
+    font-size:clamp(48px,9vw,88px);line-height:.9;letter-spacing:.01em;color:var(--text);
+    margin-bottom:8px;
+  }
+  .sub{font-size:14px;color:var(--text-dim);margin-bottom:48px;max-width:520px;line-height:1.6;}
+
+  #post-list{display:flex;flex-direction:column;gap:2px;}
+
+  .post-card{
+    position:relative;display:flex;flex-direction:column;gap:8px;text-align:left;
+    text-decoration:none;color:inherit;background:var(--bg-panel);cursor:pointer;
+    border:1px solid rgba(255,255,255,.14);padding:26px 26px;overflow:hidden;
+    transition:background .3s ease, border-color .3s ease, transform .3s ease, box-shadow .3s ease;
+  }
+  .post-card + .post-card{border-top:none;}
+  .post-card:first-child{border-radius:6px 6px 0 0;}
+  .post-card:last-child{border-radius:0 0 6px 6px;border-top:1px solid rgba(255,255,255,.14);}
+  .post-card:only-child{border-radius:6px;}
+
+  .post-card::after{
+    content:'';position:absolute;left:-20%;top:-40%;width:140%;height:180%;border-radius:50%;
+    background:radial-gradient(circle, rgba(255,255,255,.18), transparent 70%);
+    filter:blur(42px);opacity:0;z-index:0;pointer-events:none;transition:opacity .4s ease;
+  }
+  .post-card:hover::after, .post-card:focus-visible::after{opacity:1;}
+
+  .post-card:hover, .post-card:focus-visible{
+    background:var(--bg-panel-hover);border-color:#ffffff;
+    box-shadow:0 16px 36px -18px rgba(0,0,0,.7), 0 0 0 1px rgba(255,255,255,.25), 0 0 32px -8px rgba(255,255,255,.3);
+    outline:none;z-index:1;
+  }
+
+  .post-date{font-family:'IBM Plex Mono', monospace;font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;
+    color:var(--text-faint);position:relative;z-index:1;}
+  .post-title{font-family:'Big Shoulders Display', sans-serif;font-weight:700;font-size:24px;letter-spacing:.01em;
+    color:var(--text);position:relative;z-index:1;}
+  .post-excerpt{font-size:13.5px;line-height:1.55;color:var(--text-dim);position:relative;z-index:1;max-width:600px;}
+
+  .state-msg{
+    font-family:'IBM Plex Mono', monospace;font-size:12.5px;line-height:1.8;color:var(--text-dim);
+    border:1px dashed var(--line-bright);padding:26px;border-radius:6px;background:var(--bg-panel);
+  }
+  .state-msg a{color:var(--white-bright);}
+  .state-msg code{color:var(--white-bright);background:rgba(255,255,255,.06);padding:2px 6px;border-radius:3px;}
+
+  .spinner{width:16px;height:16px;border-radius:50%;border:2px solid var(--line-bright);border-top-color:#fff;
+    display:inline-block;animation:spin .8s linear infinite;vertical-align:middle;margin-right:10px;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  /* single post view */
+  #post-view{display:none;}
+  #post-view.active{display:block;}
+  #post-list.hidden, #list-header.hidden{display:none;}
+
+  .post-view-title{font-family:'Big Shoulders Display', sans-serif;font-weight:800;font-size:clamp(32px,6vw,52px);
+    line-height:1.05;color:var(--text);margin-bottom:10px;}
+  .post-view-date{font-family:'IBM Plex Mono', monospace;font-size:11px;letter-spacing:.18em;text-transform:uppercase;
+    color:var(--text-faint);margin-bottom:36px;}
+
+  .post-body{font-size:15.5px;line-height:1.8;color:#d7d9d7;}
+  .post-body h1,.post-body h2,.post-body h3{font-family:'Big Shoulders Display', sans-serif;font-weight:700;
+    color:var(--text);margin:34px 0 14px;line-height:1.2;}
+  .post-body h1{font-size:30px;} .post-body h2{font-size:24px;} .post-body h3{font-size:19px;}
+  .post-body p{margin-bottom:18px;}
+  .post-body a{color:#ffffff;text-decoration:none;border-bottom:1px solid rgba(255,255,255,.35);}
+  .post-body a:hover{border-color:#fff;}
+  .post-body ul,.post-body ol{margin:0 0 18px 22px;}
+  .post-body li{margin-bottom:6px;}
+  .post-body code{font-family:'IBM Plex Mono',monospace;font-size:13px;background:rgba(255,255,255,.06);
+    padding:2px 6px;border-radius:3px;color:#ffe8c9;}
+  .post-body pre{background:#0c0d0f;border:1px solid var(--line);border-radius:6px;padding:18px;overflow-x:auto;
+    margin-bottom:20px;}
+  .post-body pre code{background:none;padding:0;color:#e7e8e6;}
+  .post-body blockquote{border-left:2px solid rgba(255,255,255,.3);padding-left:16px;color:var(--text-dim);
+    margin-bottom:18px;}
+  .post-body img{max-width:100%;border-radius:6px;margin:10px 0 20px;}
+  .post-body hr{border:none;border-top:1px solid var(--line);margin:34px 0;}
+
+  .meta{margin-top:80px;font-family:'IBM Plex Mono', monospace;font-size:10px;letter-spacing:.2em;
+    color:var(--text-faint);text-transform:uppercase;text-align:center;}
+
+  @media (max-width:640px){
+    body{padding:44px 18px 80px;}
+    .wordmark{font-size:clamp(38px,13vw,60px);}
+    .post-card{padding:20px 20px;}
+  }
+</style>
+</head>
+<body>
+  <div class="ambient" aria-hidden="true">
+    <span class="blob w"></span><span class="blob o"></span><span class="blob g"></span>
+  </div>
+  <div class="scan-sweep" aria-hidden="true"></div>
+
+  <main class="wrap">
+    <div class="topline reveal" style="animation-delay:.05s">
+      <div class="eyebrow"><span>Journal</span><span class="dot">·</span><span>btcloud.work</span></div>
+      <a class="back" href="index.html">
+        <svg width="14" height="10" viewBox="0 0 14 10" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M0 5H13M13 5L9 1M13 5L9 9" stroke="currentColor" stroke-width="1.2"/></svg>
+        Index
+      </a>
+    </div>
+
+    <div id="list-header" class="reveal" style="animation-delay:.15s">
+      <h1 class="wordmark">Blog</h1>
+      <p class="sub">Notes, writeups, and logs from <a href="https://github.com/bafgd/BT-CLOUD" style="color:var(--text-dim)">bafgd/BT-CLOUD</a> on GitHub.</p>
+    </div>
+
+    <div id="post-list" class="reveal" style="animation-delay:.25s">
+      <div class="state-msg"><span class="spinner"></span>Fetching posts from GitHub…</div>
+    </div>
+
+    <article id="post-view"></article>
+
+    <footer class="meta">btcloud.work</footer>
+  </main>
+
+<script>
+(function(){
+  const OWNER = 'bafgd';
+  const REPO = 'BT-CLOUD';
+  const POSTS_DIR = 'posts';
+  const BRANCH = 'main';
+
+  const listEl = document.getElementById('post-list');
+  const viewEl = document.getElementById('post-view');
+  const headerEl = document.getElementById('list-header');
+
+  function escapeHtml(str){
+    return str.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  // very small frontmatter parser: --- \n key: value \n --- \n body
+  function parseFrontmatter(raw){
+    const meta = {};
+    let body = raw;
+    if(raw.startsWith('---')){
+      const end = raw.indexOf('\n---', 3);
+      if(end !== -1){
+        const block = raw.slice(3, end).trim();
+        body = raw.slice(end + 4).replace(/^\s*\n/, '');
+        block.split('\n').forEach(line => {
+          const idx = line.indexOf(':');
+          if(idx > -1){
+            const key = line.slice(0, idx).trim().toLowerCase();
+            const val = line.slice(idx + 1).trim().replace(/^["']|["']$/g, '');
+            meta[key] = val;
+          }
+        });
+      }
+    }
+    return { meta, body };
+  }
+
+  function excerptOf(markdownBody, len){
+    const plain = markdownBody
+      .replace(/```[\s\S]*?```/g, '')
+      .replace(/!\[.*?\]\(.*?\)/g, '')
+      .replace(/\[(.*?)\]\(.*?\)/g, '$1')
+      .replace(/[#>*_`~-]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+    return plain.length > len ? plain.slice(0, len).trim() + '…' : plain;
+  }
+
+  function formatDate(d){
+    if(!d) return '';
+    const dt = new Date(d);
+    if(isNaN(dt)) return d;
+    return dt.toLocaleDateString('en-US', { year:'numeric', month:'short', day:'numeric' }).toUpperCase();
+  }
+
+  async function loadPosts(){
+    let files;
+    try{
+      const res = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/${POSTS_DIR}?ref=${BRANCH}`);
+      if(res.status === 404){
+        renderEmptyState();
+        return;
+      }
+      if(!res.ok) throw new Error('GitHub API error ' + res.status);
+      files = await res.json();
+    }catch(err){
+      renderErrorState(err);
+      return;
+    }
+
+    const mdFiles = (Array.isArray(files) ? files : []).filter(f => f.type === 'file' && /\.md$/i.test(f.name));
+
+    if(mdFiles.length === 0){
+      renderEmptyState();
+      return;
+    }
+
+    const posts = await Promise.all(mdFiles.map(async file => {
+      const raw = await fetch(file.download_url).then(r => r.text());
+      const { meta, body } = parseFrontmatter(raw);
+      return {
+        slug: file.name.replace(/\.md$/i, ''),
+        title: meta.title || file.name.replace(/\.md$/i, '').replace(/[-_]/g, ' '),
+        date: meta.date || '',
+        body,
+        excerpt: meta.excerpt || excerptOf(body, 160)
+      };
+    }));
+
+    posts.sort((a, b) => {
+      if(a.date && b.date) return new Date(b.date) - new Date(a.date);
+      return a.title.localeCompare(b.title);
+    });
+
+    renderList(posts);
+
+    const hash = decodeURIComponent(location.hash.replace('#', ''));
+    if(hash){
+      const match = posts.find(p => p.slug === hash);
+      if(match) openPost(match);
+    }
+  }
+
+  function renderList(posts){
+    listEl.innerHTML = '';
+    posts.forEach(post => {
+      const card = document.createElement('a');
+      card.className = 'post-card';
+      card.href = '#' + encodeURIComponent(post.slug);
+      card.innerHTML = `
+        ${post.date ? `<span class="post-date">${formatDate(post.date)}</span>` : ''}
+        <span class="post-title">${escapeHtml(post.title)}</span>
+        <span class="post-excerpt">${escapeHtml(post.excerpt)}</span>
+      `;
+      card.addEventListener('click', e => {
+        e.preventDefault();
+        history.pushState(null, '', '#' + encodeURIComponent(post.slug));
+        openPost(post);
+      });
+      listEl.appendChild(card);
+    });
+  }
+
+  function openPost(post){
+    headerEl.classList.add('hidden');
+    listEl.classList.add('hidden');
+    viewEl.classList.add('active');
+    viewEl.innerHTML = `
+      <a class="back" href="#" id="post-back" style="margin-bottom:32px;display:inline-flex;">
+        <svg width="14" height="10" viewBox="0 0 14 10" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M0 5H13M13 5L9 1M13 5L9 9" stroke="currentColor" stroke-width="1.2"/></svg>
+        All posts
+      </a>
+      <h1 class="post-view-title">${escapeHtml(post.title)}</h1>
+      ${post.date ? `<div class="post-view-date">${formatDate(post.date)}</div>` : ''}
+      <div class="post-body">${marked.parse(post.body)}</div>
+    `;
+    document.getElementById('post-back').addEventListener('click', e => {
+      e.preventDefault();
+      history.pushState(null, '', location.pathname);
+      closePost();
+    });
+    window.scrollTo({top:0, behavior:'instant'});
+  }
+
+  function closePost(){
+    headerEl.classList.remove('hidden');
+    listEl.classList.remove('hidden');
+    viewEl.classList.remove('active');
+    viewEl.innerHTML = '';
+  }
+
+  function renderEmptyState(){
+    listEl.innerHTML = `
+      <div class="state-msg">
+        No posts yet. Add markdown files to <code>${POSTS_DIR}/</code> in
+        <a href="https://github.com/${OWNER}/${REPO}" target="_blank" rel="noopener">${OWNER}/${REPO}</a>
+        and they'll show up here automatically.<br><br>
+        Each file can start with optional frontmatter:<br>
+        <code>---<br>title: My Post<br>date: 2026-08-30<br>---</code>
+      </div>`;
+  }
+
+  function renderErrorState(err){
+    listEl.innerHTML = `
+      <div class="state-msg">
+        Couldn't reach GitHub right now. Possibly rate limited.<br><br>
+        <span style="color:var(--text-faint)">${escapeHtml(err.message || String(err))}</span>
+      </div>`;
+  }
+
+  window.addEventListener('popstate', () => {
+    if(!location.hash) closePost();
+  });
+
+  loadPosts();
+})();
+</script>
+</body>
+</html>
