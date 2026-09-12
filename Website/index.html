@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>btcloud.work</title>
-<meta name="description" content="Access index for btcloud.work — STOAT, OpenCloud, and AI.">
+<meta name="description" content="Access index for btcloud.work — STOAT, NextCloud, and AI.">
 <meta name="theme-color" content="#07080a">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%2307080a'/%3E%3Crect x='10' y='38' width='24' height='24' fill='none' stroke='%23ff7a1a' stroke-width='6'/%3E%3Crect x='38' y='38' width='24' height='24' fill='none' stroke='%2334a6ff' stroke-width='6'/%3E%3Crect x='66' y='38' width='24' height='24' fill='none' stroke='%2322d996' stroke-width='6'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -30,8 +30,8 @@
 
   body{
     background:var(--bg);color:var(--text);font-family:'IBM Plex Sans', sans-serif;
-    min-height:100vh;display:flex;align-items:center;justify-content:center;
-    padding:40px 24px;position:relative;overflow-x:hidden;-webkit-font-smoothing:antialiased;
+    min-height:100vh;display:flex;align-items:center;align-items:safe center;justify-content:center;
+    padding:0 24px;position:relative;overflow-x:hidden;-webkit-font-smoothing:antialiased;
   }
 
   body::before{
@@ -58,7 +58,7 @@
   }
   @keyframes scanSweep{0%{top:-5%;opacity:0;}8%{opacity:1;}85%{opacity:.8;}100%{top:105%;opacity:0;}}
 
-  .wrap{position:relative;z-index:1;width:100%;max-width:1160px;display:flex;flex-direction:column;align-items:center;text-align:center;}
+  .wrap{position:relative;z-index:1;width:100%;max-width:1160px;padding:40px 0;display:flex;flex-direction:column;align-items:center;text-align:center;}
 
   .reveal{opacity:0;transform:translateY(14px);animation:revealUp .7s cubic-bezier(.2,.8,.2,1) forwards;}
   @keyframes revealUp{to{opacity:1;transform:translateY(0);}}
@@ -103,7 +103,7 @@
     transition:background .35s ease, border-color .35s ease, transform .35s ease, box-shadow .35s ease;
   }
   .panel.stoat{--accent:var(--orange);--accent-bright:var(--orange-bright);--accent-rgb:var(--orange-rgb);}
-  .panel.opencloud{--accent:var(--blue);--accent-bright:var(--blue-bright);--accent-rgb:var(--blue-rgb);}
+  .panel.nextcloud{--accent:var(--blue);--accent-bright:var(--blue-bright);--accent-rgb:var(--blue-rgb);}
   .panel.ai{--accent:var(--green);--accent-bright:var(--green-bright);--accent-rgb:var(--green-rgb);}
 
   .panels>.panel:nth-child(1){border-right:none;}
@@ -116,7 +116,7 @@
     filter:blur(42px);opacity:.32;z-index:0;pointer-events:none;
     animation:breathe 5s ease-in-out infinite;
   }
-  .panel.opencloud::after{animation-delay:.35s;}
+  .panel.nextcloud::after{animation-delay:.35s;}
   .panel.ai::after{animation-delay:.7s;}
   @keyframes breathe{0%,100%{opacity:.26;}50%{opacity:.52;}}
 
@@ -313,7 +313,7 @@
 
       <div class="seam ob" aria-hidden="true"><span class="seam-node"></span></div>
 
-      <a class="panel opencloud" href="https://drive.btcloud.work">
+      <a class="panel nextcloud" href="https://drive.btcloud.work">
         <div class="panel-fx" aria-hidden="true">
           <span class="dataline" style="top:22%;animation-duration:5s;animation-delay:0s;"></span>
           <span class="dataline" style="top:48%;animation-duration:6.5s;animation-delay:1.5s;"></span>
@@ -327,7 +327,7 @@
           <path d="M3 19l11 5 11-5" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
         </svg>
         <span class="tag">Storage</span>
-        <h2>OpenCloud</h2>
+        <h2>NextCloud</h2>
         <p>File Storage and Sync</p>
         <span class="link-out">drive.btcloud.work
           <svg width="14" height="10" viewBox="0 0 14 10" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M0 5H13M13 5L9 1M13 5L9 9" stroke="currentColor" stroke-width="1.2"/></svg>
