@@ -11,6 +11,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700;800;900&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 <style>
   :root{
     --bg:#07080a;
@@ -32,7 +33,24 @@
 
   body{
     background:var(--bg);color:var(--text);font-family:'IBM Plex Sans', sans-serif;
-    min-height:100vh;padding:64px 24px 100px;position:relative;overflow-x:hidden;-webkit-font-smoothing:antialiased;
+    min-height:100vh;position:relative;overflow-x:hidden;-webkit-font-smoothing:antialiased;
+  }
+
+  #scroll-spacer{width:1px;pointer-events:none;visibility:hidden;}
+
+  .wrap{padding:64px 24px 100px;}
+
+  /* Smooth-scroll mode: content is pinned to the viewport and moved with an
+     eased transform driven from JS, while the real (invisible) document
+     scroll height comes from #scroll-spacer. This keeps native wheel /
+     trackpad / keyboard / touch scrolling intact but removes the default
+     stepped feel, and lets the background grid drift at a different rate
+     than the text for a subtle parallax effect. Falls back to normal
+     static-flow scrolling if JS doesn't enable it (see script at bottom). */
+  html.smoothscroll body{overflow:visible;}
+  html.smoothscroll .wrap{
+    position:fixed;top:0;left:0;right:0;width:auto;margin-left:auto;margin-right:auto;
+    will-change:transform;backface-visibility:hidden;
   }
 
   body::before{
@@ -41,6 +59,7 @@
       repeating-linear-gradient(112deg, rgba(255,255,255,0.014) 0px, rgba(255,255,255,0.014) 1px, transparent 1px, transparent 4px),
       repeating-linear-gradient(0deg, rgba(255,255,255,0.022) 0px, rgba(255,255,255,0.022) 1px, transparent 1px, transparent 64px),
       repeating-linear-gradient(90deg, rgba(255,255,255,0.022) 0px, rgba(255,255,255,0.022) 1px, transparent 1px, transparent 64px);
+    background-position:0 var(--grid-shift, 0px);
   }
   .ambient{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none;}
   .blob{position:absolute;width:520px;height:520px;border-radius:50%;filter:blur(110px);opacity:.2;}
@@ -140,24 +159,61 @@
   .post-view-date{font-family:'IBM Plex Mono', monospace;font-size:11px;letter-spacing:.18em;text-transform:uppercase;
     color:var(--text-faint);margin-bottom:36px;}
 
-  .post-body{font-size:15.5px;line-height:1.8;color:#d7d9d7;}
-  .post-body h1,.post-body h2,.post-body h3{font-family:'Big Shoulders Display', sans-serif;font-weight:700;
+  .post-body{font-size:15.5px;line-height:1.8;color:#d7d9d7;overflow-wrap:break-word;word-wrap:break-word;}
+  .post-body > :first-child{margin-top:0;}
+  .post-body h1,.post-body h2,.post-body h3,.post-body h4,.post-body h5,.post-body h6{font-family:'Big Shoulders Display', sans-serif;font-weight:700;
     color:var(--text);margin:34px 0 14px;line-height:1.2;}
   .post-body h1{font-size:30px;} .post-body h2{font-size:24px;} .post-body h3{font-size:19px;}
+  .post-body h4{font-size:17px;} .post-body h5{font-size:15.5px;} .post-body h6{font-size:14px;color:var(--text-dim);}
   .post-body p{margin-bottom:18px;}
   .post-body a{color:#ffffff;text-decoration:none;border-bottom:1px solid rgba(255,255,255,.35);}
   .post-body a:hover{border-color:#fff;}
-  .post-body ul,.post-body ol{margin:0 0 18px 22px;}
+  .post-body strong,.post-body b{color:var(--white-bright, #fff);font-weight:600;}
+  .post-body em,.post-body i{font-style:italic;}
+  .post-body del,.post-body s{opacity:.6;}
+  .post-body mark{background:rgba(255,232,120,.25);color:inherit;padding:0 3px;border-radius:2px;}
+  .post-body sub,.post-body sup{font-size:.75em;line-height:0;}
+  .post-body kbd{font-family:'IBM Plex Mono',monospace;font-size:12px;border:1px solid var(--line-bright);border-bottom-width:2px;
+    border-radius:4px;padding:1px 6px;background:rgba(255,255,255,.05);}
+  .post-body ul,.post-body ol{margin:0 0 18px 22px;padding-left:6px;}
+  .post-body ul{list-style:disc;} .post-body ol{list-style:decimal;}
+  .post-body ul ul{list-style:circle;} .post-body ul ul ul{list-style:square;}
   .post-body li{margin-bottom:6px;}
+  .post-body li > p{margin-bottom:8px;}
+  .post-body li > ul,.post-body li > ol{margin-top:6px;margin-bottom:6px;}
+  .post-body li.task-item{list-style:none;margin-left:-22px;}
+  .post-body li.task-item input{margin-right:8px;accent-color:#fff;transform:translateY(1px);}
   .post-body code{font-family:'IBM Plex Mono',monospace;font-size:13px;background:rgba(255,255,255,.06);
     padding:2px 6px;border-radius:3px;color:#ffe8c9;}
   .post-body pre{background:#0c0d0f;border:1px solid var(--line);border-radius:6px;padding:18px;overflow-x:auto;
-    margin-bottom:20px;}
-  .post-body pre code{background:none;padding:0;color:#e7e8e6;}
-  .post-body blockquote{border-left:2px solid rgba(255,255,255,.3);padding-left:16px;color:var(--text-dim);
-    margin-bottom:18px;}
-  .post-body img{max-width:100%;border-radius:6px;margin:10px 0 20px;}
+    margin-bottom:20px;line-height:1.6;tab-size:2;}
+  .post-body pre code{background:none;padding:0;color:#e7e8e6;white-space:pre;overflow-wrap:normal;font-size:13px;}
+  .post-body blockquote{border-left:2px solid rgba(255,255,255,.3);padding:2px 0 2px 16px;color:var(--text-dim);
+    margin:0 0 18px;}
+  .post-body blockquote > :last-child{margin-bottom:0;}
+  .post-body blockquote blockquote{margin-top:10px;}
+  .post-body blockquote pre{margin-top:10px;}
+  .post-body img{max-width:100%;height:auto;border-radius:6px;margin:10px 0 20px;}
   .post-body hr{border:none;border-top:1px solid var(--line);margin:34px 0;}
+  .post-body .table-wrap{overflow-x:auto;margin:0 0 20px;border:1px solid var(--line);border-radius:6px;}
+  .post-body table{border-collapse:collapse;width:100%;font-size:14px;line-height:1.5;}
+  .post-body th,.post-body td{padding:10px 14px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top;}
+  .post-body th{font-weight:600;color:var(--text);background:rgba(255,255,255,.04);white-space:nowrap;}
+  .post-body tr:last-child td{border-bottom:none;}
+  .post-body details{border:1px solid var(--line);border-radius:6px;padding:0 18px;margin:0 0 20px;background:rgba(255,255,255,.02);}
+  .post-body details[open]{padding-bottom:16px;}
+  .post-body summary{cursor:pointer;padding:14px 0;font-weight:600;color:var(--text);user-select:none;}
+  .post-body summary:hover{color:#fff;}
+  .post-body details[open] > summary{border-bottom:1px solid var(--line);margin-bottom:16px;}
+  .post-body details > :last-child{margin-bottom:0;}
+  .post-body .hljs-comment,.post-body .hljs-quote{color:#7d8590;font-style:italic;}
+  .post-body .hljs-keyword,.post-body .hljs-selector-tag,.post-body .hljs-literal,.post-body .hljs-built_in{color:#ff9d7a;}
+  .post-body .hljs-string,.post-body .hljs-regexp,.post-body .hljs-addition{color:#a5d6a7;}
+  .post-body .hljs-number,.post-body .hljs-attr,.post-body .hljs-symbol{color:#79c0ff;}
+  .post-body .hljs-title,.post-body .hljs-section,.post-body .hljs-name{color:#d2a8ff;}
+  .post-body .hljs-variable,.post-body .hljs-template-variable,.post-body .hljs-attribute{color:#ffd580;}
+  .post-body .hljs-deletion{color:#ff7b72;}
+  .post-body .hljs-meta{color:#8b949e;}
 
   .meta{margin-top:80px;font-family:'IBM Plex Mono', monospace;font-size:10px;letter-spacing:.2em;
     color:var(--text-faint);text-transform:uppercase;text-align:center;}
@@ -198,6 +254,8 @@
     <footer class="meta">btcloud.work</footer>
   </main>
 
+  <div id="scroll-spacer" aria-hidden="true"></div>
+
 <script>
 (function(){
   const OWNER = 'bafgd';
@@ -208,6 +266,113 @@
   const listEl = document.getElementById('post-list');
   const viewEl = document.getElementById('post-view');
   const headerEl = document.getElementById('list-header');
+  let loadedPosts = []; // populated once loadPosts() resolves; read by the popstate handler
+
+  // ---- smooth scroll + grid parallax ----------------------------------
+  // Real scrolling still happens natively (mouse wheel, trackpad, keyboard,
+  // touch all work exactly as before) because #scroll-spacer gives the
+  // document real height. We just read window.scrollY each frame, ease it
+  // toward its target, and use the eased value to (a) position the pinned
+  // .wrap content and (b) offset the background grid by a smaller fraction
+  // of the same value, so the grid visibly drifts with the text but not 1:1.
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let smoothScroll = null;
+
+  if(!prefersReducedMotion){
+    smoothScroll = (function initSmoothScroll(){
+      const wrap = document.querySelector('main.wrap');
+      const spacer = document.getElementById('scroll-spacer');
+      const EASE = 0.09;
+      const GRID_RATE = 0.16; // grid moves at ~16% of the text's speed
+      const GRID_PERIOD = 64; // matches the repeating grid's line spacing, so wrapping is visually seamless
+      let current = window.scrollY;
+      let target = window.scrollY;
+      let raf = null;
+
+      function gridShiftFor(y){
+        // Wrap into [0, GRID_PERIOD) instead of letting the value grow with
+        // scroll depth forever — large background-position values lose
+        // sub-pixel precision in the renderer and show up as a stray
+        // doubled/overlapping grid line across the row on long pages.
+        const raw = -y * GRID_RATE;
+        const wrapped = (((raw % GRID_PERIOD) + GRID_PERIOD) % GRID_PERIOD);
+        // Snap to a whole pixel. `current` is eased (a float that rarely
+        // lands on an integer), so this value is almost always something
+        // like 23.7834px. repeating-linear-gradient is tiled on the CPU,
+        // and a sub-pixel tile boundary shows up as a faint anti-aliasing
+        // seam — a clipped/doubled line across the full width of the grid,
+        // right at that row. Rounding removes the fractional boundary.
+        return Math.round(wrapped);
+      }
+
+      function maxScroll(){
+        return Math.max(0, spacer.getBoundingClientRect().height - window.innerHeight);
+      }
+
+      function resize(){
+        const h = wrap.scrollHeight;
+        spacer.style.height = h + 'px';
+      }
+
+      function tick(){
+        target = Math.min(Math.max(window.scrollY, 0), maxScroll() + 4000); // small slack for late-loading content
+        current += (target - current) * EASE;
+        if(Math.abs(target - current) < 0.05) current = target;
+        wrap.style.transform = `translate3d(0, ${-current}px, 0)`;
+        document.documentElement.style.setProperty('--grid-shift', gridShiftFor(current) + 'px');
+        raf = requestAnimationFrame(tick);
+      }
+
+      function snap(y){
+        current = target = y;
+        wrap.style.transform = `translate3d(0, ${-current}px, 0)`;
+        document.documentElement.style.setProperty('--grid-shift', gridShiftFor(current) + 'px');
+      }
+
+      function disable(){
+        // Touch scrolling is handled by the compositor thread on phones,
+        // tablets, and touchscreen laptops, so a main-thread rAF loop that
+        // repaints a position:fixed transformed element every frame can't
+        // keep up with it — it visibly lags/stutters and only "catches up"
+        // once the finger lifts. Rather than try to out-run the compositor,
+        // just tear the fake-scroll layer down as soon as real touch input
+        // is seen, and let the browser's native (already-smooth) touch
+        // scrolling take over for the rest of the session.
+        if(raf) cancelAnimationFrame(raf);
+        raf = null;
+        document.documentElement.classList.remove('smoothscroll');
+        wrap.style.transform = '';
+        document.documentElement.style.removeProperty('--grid-shift');
+        spacer.style.height = '';
+        window.removeEventListener('resize', resize);
+        resizeObserver.disconnect();
+      }
+
+      document.documentElement.classList.add('smoothscroll');
+      resize();
+      window.addEventListener('resize', resize);
+      const resizeObserver = new ResizeObserver(resize);
+      resizeObserver.observe(wrap);
+      raf = requestAnimationFrame(tick);
+
+      return { resize, snap, disable };
+    })();
+
+    // The first real touch-driven scroll is the signal to bail out of the
+    // fake-scroll layer entirely (see `disable` above). This is checked at
+    // runtime rather than via a pointer/hover media query so that hybrid
+    // devices (e.g. a touchscreen laptop) keep the nice eased effect for
+    // mouse/trackpad use, and only drop it if/when a finger actually
+    // touches the screen.
+    window.addEventListener('touchstart', function onFirstTouch(){
+      window.removeEventListener('touchstart', onFirstTouch);
+      if(smoothScroll){
+        smoothScroll.disable();
+        smoothScroll = null;
+      }
+    }, { passive: true });
+  }
+  // -----------------------------------------------------------------------
 
   function escapeHtml(str){
     return str.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -238,6 +403,7 @@
   function excerptOf(markdownBody, len){
     const plain = markdownBody
       .replace(/```[\s\S]*?```/g, '')
+      .replace(/<[^>]+>/g, ' ')
       .replace(/!\[.*?\]\(.*?\)/g, '')
       .replace(/\[(.*?)\]\(.*?\)/g, '$1')
       .replace(/[#>*_`~-]/g, ' ')
@@ -248,9 +414,129 @@
 
   function formatDate(d){
     if(!d) return '';
-    const dt = new Date(d);
+    const dm = /^(\d{4})-(\d{2})-(\d{2})$/.exec(d);
+    const dt = dm ? new Date(+dm[1], +dm[2] - 1, +dm[3]) : new Date(d); // date-only = local, avoids off-by-one day
     if(isNaN(dt)) return d;
     return dt.toLocaleDateString('en-US', { year:'numeric', month:'short', day:'numeric' }).toUpperCase();
+  }
+
+  // ---------------------------------------------------------------------------
+  // Flexible date parser. Works on filenames ("Oct 5 2026.md") and frontmatter dates.
+  // Case-insensitive. Month can be any spelling that starts a real month name
+  // (min 3 letters): oct, Oct, OCT, Octo, October, sep, Sept, September, ...
+  // Understands e.g.:
+  //   Oct 5 2026 | october 5, 2026 | Oct 5th 2026 | 5 Oct 2026 | 5th of October, 2026
+  //   2026 Oct 5 | Monday, Oct 5, 2026 | oct-5-2026 | oct_5_26
+  //   2026-10-05 | 2026-10-5 | 20261005 | 10/5/2026 | 10-5-26 | 25/12/2026
+  //   Oct 5  (no year -> assumes the current year, or last year if that would be in the future)
+  // Numeric dates like 10/5/2026 are read US-style (month first) unless the first
+  // number can only be a day (e.g. 25/12/2026). Returns "YYYY-MM-DD" or '' if none found.
+  // ---------------------------------------------------------------------------
+  const MONTH_NAMES = ['january','february','march','april','may','june','july','august','september','october','november','december'];
+  function monthFromWord(w){
+    w = (w || '').toLowerCase().replace(/\.$/, '');
+    if(w.length < 3) return -1;
+    return MONTH_NAMES.findIndex(n => n.startsWith(w));
+  }
+  function fullYear(y){
+    y = +y;
+    return y < 100 ? 2000 + y : y;
+  }
+  function toISO(y, m, d){
+    y = +y; m = +m; d = +d;
+    const dt = new Date(y, m, d);
+    if(dt.getFullYear() !== y || dt.getMonth() !== m || dt.getDate() !== d) return '';
+    return `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+  }
+  function inferYear(m, d){
+    const now = new Date();
+    let y = now.getFullYear();
+    const cand = new Date(y, m, d);
+    if(cand - now > 45 * 86400000) y -= 1;
+    return y;
+  }
+
+  const SEP0 = '[\\s,._\\-\\/]*';
+  const SEP1 = '[\\s,._\\-\\/]+';
+  const ORD  = '(?:st|nd|rd|th)?';
+  const WORD = '([A-Za-z]{3,9})\\.?';
+
+  const DATE_PATTERNS = [
+    // Month first: Oct 5 2026, October 5th, 2026, oct-5-26
+    { re: new RegExp(`(?<![A-Za-z])${WORD}${SEP0}(\\d{1,2})${ORD}${SEP1}(\\d{4}|\\d{2})(?!\\d)`, 'g'),
+      pick: m => [m[1], m[2], m[3]] },
+    // Day first: 5 Oct 2026, 5th of October 2026
+    { re: new RegExp(`(?<!\\d)(\\d{1,2})${ORD}${SEP0}(?:of\\s+)?${WORD}${SEP1}(\\d{4}|\\d{2})(?!\\d)`, 'gi'),
+      pick: m => [m[2], m[1], m[3]] },
+    // Year first with month name: 2026 Oct 5, 2026-oct-05
+    { re: new RegExp(`(?<!\\d)(\\d{4})${SEP0}${WORD}${SEP0}(\\d{1,2})${ORD}(?!\\d)`, 'g'),
+      pick: m => [m[2], m[3], m[1]] }
+  ];
+
+  function parseDateText(text){
+    if(!text) return '';
+    const str = String(text).replace(/\.md$/i, '').trim();
+
+    // 1) Month names with a year
+    for(const { re, pick } of DATE_PATTERNS){
+      re.lastIndex = 0;
+      let m;
+      while((m = re.exec(str))){
+        const [word, day, year] = pick(m);
+        const mi = monthFromWord(word);
+        if(mi > -1){
+          const iso = toISO(fullYear(year), mi, day);
+          if(iso) return iso;
+        }
+      }
+    }
+
+    // 2) Numeric, year first: 2026-10-05, 2026-10-5, 20261005
+    let m = str.match(/(?<!\d)(\d{4})[-_.\/ ]?(\d{1,2})[-_.\/ ]?(\d{1,2})(?!\d)/);
+    if(m){
+      const iso = toISO(m[1], +m[2] - 1, m[3]);
+      if(iso) return iso;
+    }
+
+    // 3) Numeric with year last: 10/5/2026, 10-5-26, 25/12/2026 (US-style unless clearly day-first)
+    m = str.match(/(?<!\d)(\d{1,2})[-_.\/](\d{1,2})[-_.\/](\d{4}|\d{2})(?!\d)/);
+    if(m){
+      const a = +m[1], b = +m[2];
+      const [mon, day] = (a > 12 && b <= 12) ? [b, a] : [a, b];
+      const iso = toISO(fullYear(m[3]), mon - 1, day);
+      if(iso) return iso;
+    }
+
+    // 4) Month name + day, no year: "Oct 5"
+    const noYearA = new RegExp(`(?<![A-Za-z])${WORD}${SEP0}(\\d{1,2})${ORD}(?!\\d)`, 'g');
+    let r;
+    while((r = noYearA.exec(str))){
+      const mi = monthFromWord(r[1]);
+      if(mi > -1){
+        const iso = toISO(inferYear(mi, +r[2]), mi, +r[2]);
+        if(iso) return iso;
+      }
+    }
+    const noYearB = new RegExp(`(?<!\\d)(\\d{1,2})${ORD}${SEP0}(?:of\\s+)?${WORD}`, 'gi');
+    while((r = noYearB.exec(str))){
+      const mi = monthFromWord(r[2]);
+      if(mi > -1){
+        const iso = toISO(inferYear(mi, +r[1]), mi, +r[1]);
+        if(iso) return iso;
+      }
+    }
+    return '';
+  }
+
+  function dateFromFilename(name){
+    return parseDateText(name);
+  }
+
+  function dateValue(d){
+    if(!d) return -Infinity;
+    const dm = /^(\d{4})-(\d{2})-(\d{2})$/.exec(d);
+    const t = (dm ? new Date(+dm[1], +dm[2] - 1, +dm[3]) : new Date(d)).getTime();
+    return isNaN(t) ? -Infinity : t;
   }
 
   async function loadPosts(){
@@ -276,29 +562,29 @@
     }
 
     const posts = await Promise.all(mdFiles.map(async file => {
-      const raw = await fetch(file.download_url).then(r => r.text());
+      const raw = (await fetch(file.download_url).then(r => r.text())).replace(/^\uFEFF/, '').replace(/\r\n?/g, '\n');
       const { meta, body } = parseFrontmatter(raw);
+      const fileDate = dateFromFilename(file.name);
       return {
         slug: file.name.replace(/\.md$/i, ''),
-        title: meta.title || file.name.replace(/\.md$/i, '').replace(/[-_]/g, ' '),
-        date: meta.date || '',
+        filename: file.name,
+        title: meta.title || file.name.replace(/\.md$/i, '').replace(/^\d{4}[-_.]?\d{2}[-_.]?\d{2}[-_ .]*/, '').replace(/[-_]/g, ' '),
+        date: fileDate || parseDateText(meta.date) || meta.date || '',
+        sortKey: fileDate || parseDateText(meta.date) || meta.date || '',
         body,
         excerpt: meta.excerpt || excerptOf(body, 160)
       };
     }));
 
-    function dateValue(d){
-      if(!d) return -Infinity;
-      const t = new Date(d).getTime();
-      return isNaN(t) ? -Infinity : t;
-    }
-
+    // Newest first, oldest last, based on the date in the .md filename
+    // (e.g. 2026-08-30-my-post.md). Ties are broken by full filename, descending.
     posts.sort((a, b) => {
-      const diff = dateValue(b.date) - dateValue(a.date);
+      const diff = dateValue(b.sortKey) - dateValue(a.sortKey);
       if(diff !== 0) return diff;
-      return a.title.localeCompare(b.title);
+      return b.filename.localeCompare(a.filename, undefined, { numeric: true });
     });
 
+    loadedPosts = posts;
     renderList(posts);
 
     const hash = decodeURIComponent(location.hash.replace('#', ''));
@@ -308,6 +594,82 @@
     }
   }
 
+  // ---------------------------------------------------------------------------
+  // Markdown rendering
+  // ---------------------------------------------------------------------------
+  marked.use({ gfm: true, breaks: true });   // GitHub-flavoured markdown; single newline = line break
+
+  const RAW_BASE  = `https://raw.githubusercontent.com/${OWNER}/${REPO}/${BRANCH}/${POSTS_DIR}/`;
+  const BLOB_BASE = `https://github.com/${OWNER}/${REPO}/blob/${BRANCH}/${POSTS_DIR}/`;
+
+  // Make raw-HTML blocks (<details>/<summary>) play nicely with markdown inside them:
+  // markdown only renders inside an HTML block when it's separated by blank lines.
+  function prepareMarkdown(md){
+    md = md.replace(/^\uFEFF/, '').replace(/\r\n?/g, '\n');
+    return md.split(/(^```[\s\S]*?^```|^~~~[\s\S]*?^~~~)/m).map((chunk, i) => {
+      if(i % 2 === 1) return chunk; // fenced code: leave untouched
+      return chunk
+        .replace(/(<details[^>]*>)[ \t]*\n(?![ \t]*\n|[ \t]*<summary)/gi, '$1\n\n')
+        .replace(/(<\/summary>)[ \t]*\n(?![ \t]*\n)/gi, '$1\n\n')
+        .replace(/([^\n])\n([ \t]*<\/details>)/gi, '$1\n\n$2');
+    }).join('');
+  }
+
+  function isRelative(u){
+    return u && !/^([a-z][a-z0-9+.-]*:|\/\/|#|\/)/i.test(u);
+  }
+
+  function renderMarkdown(md){
+    const html = marked.parse(prepareMarkdown(md), { async: false });
+    const box = document.createElement('div');
+    box.innerHTML = html;
+
+    // wide tables scroll inside their own box
+    box.querySelectorAll('table').forEach(t => {
+      const wrap = document.createElement('div');
+      wrap.className = 'table-wrap';
+      t.parentNode.insertBefore(wrap, t);
+      wrap.appendChild(t);
+    });
+
+    // task lists: style checkbox items, keep them read-only
+    box.querySelectorAll('li input[type="checkbox"]').forEach(cb => {
+      cb.disabled = true;
+      const li = cb.closest('li');
+      if(li) li.classList.add('task-item');
+    });
+
+    // relative images / links -> resolve against the repo
+    box.querySelectorAll('img[src]').forEach(img => {
+      const src = img.getAttribute('src');
+      if(isRelative(src)) img.setAttribute('src', new URL(src, RAW_BASE).href);
+      img.setAttribute('loading', 'lazy');
+      img.addEventListener('load', () => { if(smoothScroll) smoothScroll.resize(); });
+    });
+    box.querySelectorAll('a[href]').forEach(a => {
+      const href = a.getAttribute('href');
+      if(isRelative(href)) a.setAttribute('href', new URL(href, BLOB_BASE).href);
+      if(/^https?:/i.test(a.getAttribute('href'))){
+        a.setAttribute('target', '_blank');
+        a.setAttribute('rel', 'noopener noreferrer');
+      }
+    });
+
+    // syntax highlighting
+    if(window.hljs){
+      box.querySelectorAll('pre code').forEach(el => { try{ hljs.highlightElement(el); }catch(e){} });
+    }
+
+    // resize scroll height when <details> opens/closes
+    box.querySelectorAll('details').forEach(d => d.addEventListener('toggle', () => { if(smoothScroll) smoothScroll.resize(); }));
+    return box.innerHTML;
+  }
+
+  // Main heading for a post = its parsed date (falls back to the title if no date could be read)
+  function displayTitle(post){
+    return post.date ? formatDate(post.date) : post.title;
+  }
+
   function renderList(posts){
     listEl.innerHTML = '';
     posts.forEach(post => {
@@ -315,8 +677,7 @@
       card.className = 'post-card';
       card.href = '#' + encodeURIComponent(post.slug);
       card.innerHTML = `
-        ${post.date ? `<span class="post-date">${formatDate(post.date)}</span>` : ''}
-        <span class="post-title">${escapeHtml(post.title)}</span>
+        <span class="post-title">${escapeHtml(displayTitle(post))}</span>
         <span class="post-excerpt">${escapeHtml(post.excerpt)}</span>
       `;
       card.addEventListener('click', e => {
@@ -333,13 +694,12 @@
     listEl.classList.add('hidden');
     viewEl.classList.add('active');
     viewEl.innerHTML = `
-      <a class="back" href="#" id="post-back" style="margin-bottom:32px;display:inline-flex;">
+      <a class="back reveal" href="#" id="post-back" style="margin-bottom:32px;display:inline-flex;animation-delay:.05s">
         <svg width="14" height="10" viewBox="0 0 14 10" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M0 5H13M13 5L9 1M13 5L9 9" stroke="currentColor" stroke-width="1.2"/></svg>
         All posts
       </a>
-      <h1 class="post-view-title">${escapeHtml(post.title)}</h1>
-      ${post.date ? `<div class="post-view-date">${formatDate(post.date)}</div>` : ''}
-      <div class="post-body">${marked.parse(post.body)}</div>
+      <h1 class="post-view-title reveal" style="animation-delay:.13s">${escapeHtml(displayTitle(post))}</h1>
+      <div class="post-body reveal" style="animation-delay:.28s">${renderMarkdown(post.body)}</div>
     `;
     document.getElementById('post-back').addEventListener('click', e => {
       e.preventDefault();
@@ -347,6 +707,7 @@
       closePost();
     });
     window.scrollTo({top:0, behavior:'instant'});
+    if(smoothScroll){ smoothScroll.resize(); smoothScroll.snap(0); }
   }
 
   function closePost(){
@@ -354,6 +715,8 @@
     listEl.classList.remove('hidden');
     viewEl.classList.remove('active');
     viewEl.innerHTML = '';
+    window.scrollTo({top:0, behavior:'instant'});
+    if(smoothScroll){ smoothScroll.resize(); smoothScroll.snap(0); }
   }
 
   function renderEmptyState(){
@@ -376,7 +739,17 @@
   }
 
   window.addEventListener('popstate', () => {
-    if(!location.hash) closePost();
+    // Bug: this used to only ever close the post view (when the hash became
+    // empty) and never reopen one. So Back from a post to the list worked,
+    // but then Forward (which restores the post's hash) left the URL
+    // pointing at a post while the list stayed on screen — content and
+    // address bar disagreed. Now every popstate re-derives the right view
+    // from whatever hash it lands on, in either direction.
+    const hash = decodeURIComponent(location.hash.replace('#', ''));
+    if(!hash){ closePost(); return; }
+    const match = loadedPosts.find(p => p.slug === hash);
+    if(match) openPost(match);
+    else closePost();
   });
 
   loadPosts();
